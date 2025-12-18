@@ -3,24 +3,47 @@
 namespace Katema\WhatsApp;
 
 use Illuminate\Support\ServiceProvider;
+use Katema\WhatsApp\Services\WhatsAppService;
+use Katema\WhatsApp\Services\FlowService;
+use Katema\WhatsApp\Services\AI\AIServiceManager;
 
 class WhatsAppServiceProvider extends ServiceProvider
 {
-    public function register()
+    public function register(): void
     {
-        $this->mergeConfigFrom(
-            __DIR__.'/../config/whatsapp.php',
-            'whatsapp'
-        );
+        $this->mergeConfigFrom(__DIR__.'/../config/whatsapp.php', 'whatsapp');
+
+        $this->app->singleton(WhatsAppService::class, function ($app) {
+            return new WhatsAppService(
+                config('whatsapp.access_token'),
+                config('whatsapp.phone_number_id'),
+                config('whatsapp.verify_token')
+            );
+        });
+
+        $this->app->singleton(FlowService::class);
+        $this->app->singleton(AIServiceManager::class);
     }
 
-    public function boot()
+    public function boot(): void
     {
-        $this->publishes([
-            __DIR__.'/../config/whatsapp.php' => config_path('whatsapp.php'),
-        ], 'whatsapp-config');
-
-        $this->loadRoutesFrom(__DIR__.'/../routes/webhook.php');
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+        $this->loadRoutesFrom(__DIR__.'/../routes/whatsapp.php');
+
+        if ($this->app->runningInConsole()) {
+            $this->publishes([
+                __DIR__.'/../config/whatsapp.php' => config_path('whatsapp.php'),
+            ], 'whatsapp-config');
+
+            $this->publishes([
+                __DIR__.'/../database/migrations' => database_path('migrations'),
+            ], 'whatsapp-migrations');
+        }
+
+        // Register event listener
+        $this->app->make('events')->listen(
+            \Katema\WhatsApp\Events\MessageReceived::class,
+            \Katema\WhatsApp\Listeners\ProcessIncomingMessage::class
+        );
     }
 }
