@@ -1,0 +1,22 @@
+{
+  "name": "katema/laravel-whatsapp",
+  "description": "Laravel package for Meta WhatsApp chatbots, flows, and AI automation",
+  "type": "library",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "Katema\\WhatsApp\\": "src/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Katema\\WhatsApp\\WhatsAppServiceProvider"
+      ]
+    }
+  },
+  "require": {
+    "php": "^8.1",
+    "illuminate/support": "^10|^11"
+  }
+}
