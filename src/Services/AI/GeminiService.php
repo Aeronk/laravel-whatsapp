@@ -16,14 +16,16 @@ class GeminiService implements AIServiceInterface
 
     public function __construct()
     {
-        $this->apiKey = config('whatsapp.ai.gemini.api_key');
-        $this->model = config('whatsapp.ai.gemini.model');
-        $this->maxTokens = config('whatsapp.ai.gemini.max_tokens');
-        $this->temperature = config('whatsapp.ai.gemini.temperature');
+        $apiKey = config('whatsapp.ai.gemini.api_key');
 
-        if (!$this->apiKey) {
+        if (!$apiKey) {
             throw new AIServiceException('Gemini API key not configured');
         }
+
+        $this->apiKey = $apiKey;
+        $this->model = config('whatsapp.ai.gemini.model', 'gemini-pro');
+        $this->maxTokens = (int) config('whatsapp.ai.gemini.max_tokens', 500);
+        $this->temperature = (float) config('whatsapp.ai.gemini.temperature', 0.7);
     }
 
     public function withSystemPrompt(string $prompt): self

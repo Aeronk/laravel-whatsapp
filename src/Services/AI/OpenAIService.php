@@ -17,14 +17,16 @@ class OpenAIService implements AIServiceInterface
 
     public function __construct()
     {
-        $this->apiKey = config('whatsapp.ai.openai.api_key');
-        $this->model = config('whatsapp.ai.openai.model');
-        $this->maxTokens = config('whatsapp.ai.openai.max_tokens');
-        $this->temperature = config('whatsapp.ai.openai.temperature');
+        $apiKey = config('whatsapp.ai.openai.api_key');
 
-        if (!$this->apiKey) {
+        if (!$apiKey) {
             throw new AIServiceException('OpenAI API key not configured');
         }
+
+        $this->apiKey = $apiKey;
+        $this->model = config('whatsapp.ai.openai.model', 'gpt-4-turbo-preview');
+        $this->maxTokens = (int) config('whatsapp.ai.openai.max_tokens', 500);
+        $this->temperature = (float) config('whatsapp.ai.openai.temperature', 0.7);
     }
 
     public function withSystemPrompt(string $prompt): self
