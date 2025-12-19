@@ -19,8 +19,8 @@ class OpenAIService implements AIServiceInterface
     {
         $apiKey = config('whatsapp.ai.openai.api_key');
 
-        if (!$apiKey) {
-            throw new AIServiceException('OpenAI API key not configured');
+        if (!$apiKey || str_contains($apiKey, 'your_openai_key_here')) {
+            throw new AIServiceException('OpenAI API key not configured or using placeholder');
         }
 
         $this->apiKey = $apiKey;

@@ -16,17 +16,22 @@ class AIServiceManager
 
     protected function bootService(): void
     {
-        $provider = config('whatsapp.ai.default');
+        try {
+            $provider = config('whatsapp.ai.default');
 
-        if (!$provider) {
-            return;
+            if (!$provider) {
+                return;
+            }
+
+            $this->service = match ($provider) {
+                'openai' => new OpenAIService(),
+                'gemini' => new GeminiService(),
+                default => null,
+            };
+        } catch (\Exception $e) {
+            // Silently fail to keep the package optional
+            $this->service = null;
         }
-
-        $this->service = match($provider) {
-            'openai' => new OpenAIService(),
-            'gemini' => new GeminiService(),
-            default => throw new AIServiceException("Unsupported AI provider: {$provider}"),
-        };
     }
 
     public function chat(string $message, array $history = []): ?string
@@ -35,7 +40,12 @@ class AIServiceManager
             return null;
         }
 
-        return $this->service->chat($message, $history);
+        try {
+            return $this->service->chat($message, $history);
+        } catch (\Exception $e) {
+            // Log or handle error if needed, but return null to prevent crashing the flow
+            return null;
+        }
     }
 
     public function completion(string $prompt, array $options = []): ?string
@@ -44,7 +54,11 @@ class AIServiceManager
             return null;
         }
 
-        return $this->service->completion($prompt, $options);
+        try {
+            return $this->service->completion($prompt, $options);
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 
     public function isEnabled(): bool

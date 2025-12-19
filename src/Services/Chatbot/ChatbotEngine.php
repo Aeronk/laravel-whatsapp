@@ -19,7 +19,7 @@ class ChatbotEngine
         protected AIServiceManager $aiManager
     ) {
         $this->rules = collect();
-        $this->aiEnabled = config('whatsapp.ai.default') !== null;
+        $this->aiEnabled = $this->aiManager->isEnabled();
     }
 
     public function addRule(callable $condition, callable $action, int $priority = 10): self
