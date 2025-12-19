@@ -59,16 +59,18 @@ class WebhookHandler
 
         $content = $this->extractContent($message, $type);
 
-        $whatsappMessage = WhatsAppMessage::create([
-            'whatsapp_user_id' => $user->id,
-            'message_id' => $messageId,
-            'type' => $type,
-            'direction' => 'incoming',
-            'status' => 'received',
-            'content' => $content,
-            'metadata' => $message,
-            'sent_at' => now()->setTimestamp($timestamp),
-        ]);
+        $whatsappMessage = WhatsAppMessage::firstOrCreate(
+            ['message_id' => $messageId],
+            [
+                'whatsapp_user_id' => $user->id,
+                'type' => $type,
+                'direction' => 'incoming',
+                'status' => 'received',
+                'content' => $content,
+                'metadata' => $message,
+                'sent_at' => now()->setTimestamp($timestamp),
+            ]
+        );
 
         event(new MessageReceived($whatsappMessage, $user));
     }
