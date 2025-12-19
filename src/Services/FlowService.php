@@ -7,10 +7,45 @@ use Katema\WhatsApp\Exceptions\FlowException;
 
 class FlowService
 {
+    protected \Katema\WhatsApp\Services\Chatbot\FlowCrypto $crypto;
+
+    public function __construct(\Katema\WhatsApp\Services\Chatbot\FlowCrypto $crypto)
+    {
+        $this->crypto = $crypto;
+    }
+
+    public function handleEndpointRequest(array $encryptedData): array
+    {
+        $privateKey = config('whatsapp.flows.private_key');
+        if (!$privateKey) {
+            throw new FlowException('Meta Flow Private Key not configured');
+        }
+
+        // Decrypt the payload
+        $decryptedData = $this->crypto->decrypt(
+            $encryptedData['encrypted_flow_data'],
+            $privateKey,
+            $encryptedData['encrypted_aes_key'],
+            $encryptedData['initial_vector']
+        );
+
+        // Here the developer would normally process the data...
+        // For now, we return a standard response structure
+        return [
+            'decrypted' => $decryptedData,
+            'aes_key' => $encryptedData['encrypted_aes_key'],
+            'iv' => $encryptedData['initial_vector']
+        ];
+    }
+
+    public function encryptResponse(array $responsePayload, string $aesKey, string $iv): string
+    {
+        return $this->crypto->encrypt($responsePayload, $aesKey, $iv);
+    }
     public function createFlow(string $name, array $screens, array $metadata = []): WhatsAppFlow
     {
         $flowId = $this->generateFlowId();
-        
+
         $definition = [
             'version' => config('whatsapp.flows.version', '7.3'),
             'screens' => $screens,
@@ -28,7 +63,7 @@ class FlowService
     public function updateFlow(string $flowId, array $screens): WhatsAppFlow
     {
         $flow = WhatsAppFlow::where('flow_id', $flowId)->firstOrFail();
-        
+
         if ($flow->status === 'published') {
             throw new FlowException('Cannot update published flow. Create a new version instead.');
         }

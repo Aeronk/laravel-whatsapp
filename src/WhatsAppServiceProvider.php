@@ -22,6 +22,7 @@ class WhatsAppServiceProvider extends ServiceProvider
         });
 
         $this->app->singleton(FlowService::class);
+        $this->app->singleton(\Katema\WhatsApp\Services\Chatbot\FlowCrypto::class);
         $this->app->singleton(AIServiceManager::class);
     }
 

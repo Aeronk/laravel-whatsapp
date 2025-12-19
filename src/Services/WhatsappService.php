@@ -84,11 +84,13 @@ class WhatsAppService
 
     public function sendImage(string $to, string $imageUrl, ?string $caption = null): array
     {
+        $idOrLink = $this->isLocalFile($imageUrl) ? ['id' => $this->uploadMedia($imageUrl, 'image')] : ['link' => $imageUrl];
+
         $payload = [
             'messaging_product' => 'whatsapp',
             'to' => $to,
             'type' => 'image',
-            'image' => ['link' => $imageUrl],
+            'image' => $idOrLink,
         ];
 
         if ($caption) {
@@ -100,11 +102,13 @@ class WhatsAppService
 
     public function sendDocument(string $to, string $documentUrl, ?string $filename = null, ?string $caption = null): array
     {
+        $idOrLink = $this->isLocalFile($documentUrl) ? ['id' => $this->uploadMedia($documentUrl, 'document')] : ['link' => $documentUrl];
+
         $payload = [
             'messaging_product' => 'whatsapp',
             'to' => $to,
             'type' => 'document',
-            'document' => ['link' => $documentUrl],
+            'document' => $idOrLink,
         ];
 
         if ($filename) {
@@ -120,21 +124,25 @@ class WhatsAppService
 
     public function sendAudio(string $to, string $audioUrl): array
     {
+        $idOrLink = $this->isLocalFile($audioUrl) ? ['id' => $this->uploadMedia($audioUrl, 'audio')] : ['link' => $audioUrl];
+
         return $this->makeRequest('messages', [
             'messaging_product' => 'whatsapp',
             'to' => $to,
             'type' => 'audio',
-            'audio' => ['link' => $audioUrl],
+            'audio' => $idOrLink,
         ]);
     }
 
     public function sendVideo(string $to, string $videoUrl, ?string $caption = null): array
     {
+        $idOrLink = $this->isLocalFile($videoUrl) ? ['id' => $this->uploadMedia($videoUrl, 'video')] : ['link' => $videoUrl];
+
         $payload = [
             'messaging_product' => 'whatsapp',
             'to' => $to,
             'type' => 'video',
-            'video' => ['link' => $videoUrl],
+            'video' => $idOrLink,
         ];
 
         if ($caption) {
@@ -219,6 +227,28 @@ class WhatsAppService
         return $mediaResponse->body();
     }
 
+    public function uploadMedia(string $filePath, string $type): string
+    {
+        if (!file_exists($filePath)) {
+            throw new WhatsAppException("File not found: {$filePath}");
+        }
+
+        $url = "{$this->apiUrl}/{$this->apiVersion}/{$this->phoneNumberId}/media";
+
+        $response = Http::withToken($this->accessToken)
+            ->attach('file', file_get_contents($filePath), basename($filePath))
+            ->post($url, [
+                'messaging_product' => 'whatsapp',
+                'type' => $type,
+            ]);
+
+        if (!$response->successful()) {
+            throw new WhatsAppException('Media upload failed: ' . $response->body());
+        }
+
+        return $response->json('id');
+    }
+
     public function verifyWebhook(string $mode, string $token, string $challenge): string
     {
         if ($mode === 'subscribe' && $token === $this->verifyToken) {
@@ -226,6 +256,11 @@ class WhatsAppService
         }
 
         throw new WhatsAppException('Webhook verification failed');
+    }
+
+    protected function isLocalFile(string $path): bool
+    {
+        return !filter_var($path, FILTER_VALIDATE_URL) && file_exists($path);
     }
 
     protected function makeRequest(string $endpoint, array $data = [], string $method = 'POST'): array

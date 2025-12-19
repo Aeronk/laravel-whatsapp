@@ -58,6 +58,12 @@ WhatsApp::to('1234567890')->text('Hello from Laravel!')->send();
 ```php
 // Send text message
 WhatsApp::sendMessage('1234567890', 'Hello from Laravel!');
+
+// Send local image (Auto-uploads to Meta)
+WhatsApp::sendImage('1234567890', storage_path('app/public/image.jpg'), 'Local Image');
+
+// Send remote image
+WhatsApp::sendImage('1234567890', 'https://example.com/remote.jpg', 'Remote Image');
 ```
 
 ### 2. Send Interactive Messages
@@ -270,12 +276,27 @@ use Katema\WhatsApp\Events\MessageReceived;
 use Katema\WhatsApp\Events\MessageStatusUpdated;
 use Katema\WhatsApp\Events\FlowResponseReceived;
 
-// Listen to message status changes
-Event::listen(MessageStatusUpdated::class, function ($event) {
-    if ($event->status === 'read') {
-        // Message was read by recipient
-    }
-});
+### WhatsApp Flow Security
+
+For Flow "Endpoints", common logic requires decryption of the incoming payload.
+
+```php
+use Katema\WhatsApp\Facades\Flow;
+
+$decrypted = Flow::handleEndpointRequest($request->all());
+
+// Perform logic...
+
+$response = Flow::encryptResponse([
+    'screen' => 'SUCCESS',
+    'data' => ['message' => 'Processed!']
+], $decrypted['aes_key'], $decrypted['iv']);
+
+return response()->json([
+    'encrypted_flow_data' => $response,
+    'encrypted_aes_key' => $decrypted['aes_key'], // Usually returned as received
+    'initial_vector' => $decrypted['iv']
+]);
 ```
 
 ## Webhook Setup
