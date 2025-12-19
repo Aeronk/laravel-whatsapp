@@ -35,6 +35,18 @@ class ChatbotEngine
         return $this;
     }
 
+    public function setPersona(string $prompt): self
+    {
+        $this->aiManager->withSystemPrompt($prompt);
+        return $this;
+    }
+
+    public function withTools(array $tools): self
+    {
+        $this->aiManager->withTools($tools);
+        return $this;
+    }
+
     public function process(WhatsAppMessage $message, WhatsAppUser $user): void
     {
         if ($user->is_blocked) {
@@ -79,7 +91,7 @@ class ChatbotEngine
     protected function handleWithAI(WhatsAppMessage $message, WhatsAppUser $user, WhatsAppSession $session): void
     {
         $conversationHistory = $this->getConversationHistory($session);
-        
+
         $response = $this->aiManager->chat(
             $message->content['body'] ?? '',
             $conversationHistory

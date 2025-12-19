@@ -16,12 +16,10 @@ A comprehensive Laravel package for building WhatsApp chatbots, flows, and AI-po
 ## Installation
 
 ```bash
-composer require katema/laravel-whatsapp
-```
+# Easy installation command
+php artisan whatsapp:install
 
-### Publish Configuration
-
-```bash
+# Or manually publish
 php artisan vendor:publish --tag=whatsapp-config
 php artisan vendor:publish --tag=whatsapp-migrations
 php artisan migrate
@@ -47,25 +45,19 @@ GEMINI_API_KEY=your_gemini_key
 
 ## Quick Start
 
-### 1. Send Messages
+#### Fluent Builder (Recommended)
 
 ```php
 use Katema\WhatsApp\Facades\WhatsApp;
 
+WhatsApp::to('1234567890')->text('Hello from Laravel!')->send();
+```
+
+#### Basic Methods
+
+```php
 // Send text message
 WhatsApp::sendMessage('1234567890', 'Hello from Laravel!');
-
-// Send with reply context
-WhatsApp::sendMessage('1234567890', 'Reply message', 'message_id_to_reply');
-
-// Send image
-WhatsApp::sendImage('1234567890', 'https://example.com/image.jpg', 'Caption');
-
-// Send document
-WhatsApp::sendDocument('1234567890', 'https://example.com/doc.pdf', 'filename.pdf');
-
-// Send location
-WhatsApp::sendLocation('1234567890', -1.2921, 36.8219, 'Nairobi', 'Kenya');
 ```
 
 ### 2. Send Interactive Messages
@@ -185,17 +177,28 @@ WhatsApp::sendFlow('1234567890', $whatsappFlow->flow_id);
 
 ### 5. AI-Powered Responses
 
-With AI enabled, the chatbot automatically handles unmatched messages:
+With AI enabled, the chatbot automatically handles unmatched messages. You can now define **Personas** (System Prompts):
 
 ```php
-// In your .env
-WHATSAPP_AI_PROVIDER=openai
-OPENAI_API_KEY=your_key
+// Define a specific persona for the chatbot
+$chatbot->setPersona('You are a helpful travel agent specialized in African safaris. Respond in a professional and enthusiastic tone.');
 
-// The engine will:
-// 1. Check your custom rules first
-// 2. If no match, use AI to generate response
-// 3. Maintain conversation context in sessions
+// Or use tools (OpenAI Function Calling)
+$chatbot->withTools([
+    [
+        'type' => 'function',
+        'function' => [
+            'name' => 'get_package_price',
+            'description' => 'Get the price of a travel package',
+            'parameters' => [
+                'type' => 'object',
+                'properties' => [
+                    'package' => ['type' => 'string']
+                ]
+            ]
+        ]
+    ]
+]);
 ```
 
 ## Advanced Usage
@@ -287,8 +290,21 @@ Configure in Meta App Dashboard:
 
 ## Testing
 
-```bash
-composer test
+Use `WhatsApp::fake()` to prevent actual API calls and assert that messages were sent.
+
+```php
+public function test_it_sends_a_greeting()
+{
+    $fake = WhatsApp::fake();
+
+    // Trigger your logic...
+    WhatsApp::to('1234567890')->text('Hi!')->send();
+
+    // Assertions
+    $fake->assertSentTo('1234567890', function ($msg) {
+        return $msg['message'] === 'Hi!';
+    });
+}
 ```
 
 ## Security

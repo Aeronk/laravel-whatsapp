@@ -12,6 +12,7 @@ class GeminiService implements AIServiceInterface
     protected string $model;
     protected int $maxTokens;
     protected float $temperature;
+    protected ?string $systemPrompt = null;
 
     public function __construct()
     {
@@ -25,19 +26,40 @@ class GeminiService implements AIServiceInterface
         }
     }
 
+    public function withSystemPrompt(string $prompt): self
+    {
+        $this->systemPrompt = $prompt;
+        return $this;
+    }
+
+    public function withTools(array $tools): self
+    {
+        // Gemini tool calling requires a slightly different payload, 
+        // to be implemented in a future update if requested.
+        return $this;
+    }
+
     public function chat(string $message, array $history = []): string
     {
         $contents = $this->formatHistory($history);
         $contents[] = ['role' => 'user', 'parts' => [['text' => $message]]];
 
+        $payload = [
+            'contents' => $contents,
+            'generationConfig' => [
+                'maxOutputTokens' => $this->maxTokens,
+                'temperature' => $this->temperature,
+            ],
+        ];
+
+        if ($this->systemPrompt) {
+            $payload['system_instruction'] = [
+                'parts' => [['text' => $this->systemPrompt]]
+            ];
+        }
+
         $response = Http::timeout(30)
-            ->post("https://generativelanguage.googleapis.com/v1beta/models/{$this->model}:generateContent", [
-                'contents' => $contents,
-                'generationConfig' => [
-                    'maxOutputTokens' => $this->maxTokens,
-                    'temperature' => $this->temperature,
-                ],
-            ], [
+            ->post("https://generativelanguage.googleapis.com/v1beta/models/{$this->model}:generateContent", $payload, [
                 'key' => $this->apiKey,
             ]);
 
