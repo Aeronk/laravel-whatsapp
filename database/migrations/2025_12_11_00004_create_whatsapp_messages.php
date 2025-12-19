@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         Schema::create('whatsapp_messages', function (Blueprint $table) {
@@ -15,7 +14,7 @@ return new class extends Migration
             $table->string('message_id')->unique();
             $table->enum('type', ['text', 'image', 'video', 'audio', 'document', 'location', 'contact', 'interactive', 'template', 'reaction', 'sticker', 'unknown'])->default('text');
             $table->enum('direction', ['incoming', 'outgoing']);
-            $table->enum('status', ['pending', 'sent', 'delivered', 'read', 'failed'])->default('pending');
+            $table->enum('status', ['pending', 'sent', 'delivered', 'read', 'failed', 'received', 'deleted'])->default('pending');
             $table->json('content');
             $table->json('metadata')->nullable();
             $table->timestamp('sent_at')->nullable();

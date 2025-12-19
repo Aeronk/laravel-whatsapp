@@ -86,7 +86,7 @@ class WebhookHandler
 
         $updates = ['status' => $statusType];
 
-        match($statusType) {
+        match ($statusType) {
             'sent' => $updates['sent_at'] = now(),
             'delivered' => $updates['delivered_at'] = now(),
             'read' => $updates['read_at'] = now(),
@@ -94,6 +94,7 @@ class WebhookHandler
                 $updates['failed_at'] = now(),
                 $updates['error_message'] = $status['errors'][0]['title'] ?? 'Unknown error',
             ],
+            'deleted' => $updates['status'] = 'deleted',
             default => null,
         };
 
@@ -104,7 +105,7 @@ class WebhookHandler
 
     protected function extractContent(array $message, string $type): array
     {
-        return match($type) {
+        return match ($type) {
             'text' => [
                 'body' => $message['text']['body'] ?? '',
             ],
