@@ -11,7 +11,7 @@ class WhatsAppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->mergeConfigFrom(__DIR__.'/../config/whatsapp.php', 'whatsapp');
+        $this->mergeConfigFrom(__DIR__ . '/../config/whatsapp.php', 'whatsapp');
 
         $this->app->singleton(WhatsAppService::class, function ($app) {
             return new WhatsAppService(
@@ -27,16 +27,22 @@ class WhatsAppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
-        $this->loadRoutesFrom(__DIR__.'/../routes/whatsapp.php');
+        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+        $this->loadRoutesFrom(__DIR__ . '/../routes/whatsapp.php');
+
+        // Register middleware
+        $this->app['router']->aliasMiddleware(
+            'whatsapp.verify_signature',
+            \Katema\WhatsApp\Http\Middleware\VerifyWebhookSignature::class
+        );
 
         if ($this->app->runningInConsole()) {
             $this->publishes([
-                __DIR__.'/../config/whatsapp.php' => config_path('whatsapp.php'),
+                __DIR__ . '/../config/whatsapp.php' => config_path('whatsapp.php'),
             ], 'whatsapp-config');
 
             $this->publishes([
-                __DIR__.'/../database/migrations' => database_path('migrations'),
+                __DIR__ . '/../database/migrations' => database_path('migrations'),
             ], 'whatsapp-migrations');
         }
 

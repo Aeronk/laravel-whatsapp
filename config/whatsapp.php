@@ -9,8 +9,9 @@ return [
     'access_token' => env('WHATSAPP_ACCESS_TOKEN'),
     'phone_number_id' => env('WHATSAPP_PHONE_NUMBER_ID'),
     'business_account_id' => env('WHATSAPP_BUSINESS_ACCOUNT_ID'),
+    'app_secret' => env('WHATSAPP_APP_SECRET'),
     'verify_token' => env('WHATSAPP_VERIFY_TOKEN', 'your_verify_token'),
-    
+
     'api_version' => env('WHATSAPP_API_VERSION', 'v21.0'),
     'api_url' => env('WHATSAPP_API_URL', 'https://graph.facebook.com'),
 
@@ -23,6 +24,7 @@ return [
         'enabled' => env('WHATSAPP_WEBHOOK_ENABLED', true),
         'path' => env('WHATSAPP_WEBHOOK_PATH', 'whatsapp/webhook'),
         'middleware' => ['api'],
+        'verify_signature' => env('WHATSAPP_VERIFY_SIGNATURE', true),
     ],
 
     /*
@@ -32,14 +34,14 @@ return [
     */
     'ai' => [
         'default' => env('WHATSAPP_AI_PROVIDER', 'openai'), // openai, gemini, or null
-        
+
         'openai' => [
             'api_key' => env('OPENAI_API_KEY'),
             'model' => env('OPENAI_MODEL', 'gpt-4-turbo-preview'),
             'max_tokens' => env('OPENAI_MAX_TOKENS', 500),
             'temperature' => env('OPENAI_TEMPERATURE', 0.7),
         ],
-        
+
         'gemini' => [
             'api_key' => env('GEMINI_API_KEY'),
             'model' => env('GEMINI_MODEL', 'gemini-pro'),
