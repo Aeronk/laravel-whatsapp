@@ -11,6 +11,8 @@ class WhatsAppUser extends Model
 {
     use HasFactory;
 
+    protected $table = 'whatsapp_users';
+
     protected $fillable = [
         'phone_number',
         'profile_name',

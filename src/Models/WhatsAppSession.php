@@ -11,6 +11,8 @@ class WhatsAppSession extends Model
 {
     use HasFactory;
 
+    protected $table = 'whatsapp_sessions';
+
     protected $fillable = [
         'whatsapp_user_id',
         'status',

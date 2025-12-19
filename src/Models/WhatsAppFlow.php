@@ -9,6 +9,8 @@ class WhatsAppFlow extends Model
 {
     use HasFactory;
 
+    protected $table = 'whatsapp_flows';
+
     protected $fillable = [
         'flow_id',
         'name',
