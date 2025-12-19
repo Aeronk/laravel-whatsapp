@@ -13,6 +13,7 @@ class WhatsAppService
     protected string $verifyToken;
     protected string $apiUrl;
     protected string $apiVersion;
+    protected \Illuminate\Support\Collection $recordedMessages;
 
     public function __construct(string $accessToken, string $phoneNumberId, string $verifyToken)
     {
@@ -21,6 +22,12 @@ class WhatsAppService
         $this->verifyToken = $verifyToken;
         $this->apiUrl = config('whatsapp.api_url');
         $this->apiVersion = config('whatsapp.api_version');
+        $this->recordedMessages = collect();
+    }
+
+    public function to(string $to): \Katema\WhatsApp\Builders\MessageBuilder
+    {
+        return (new \Katema\WhatsApp\Builders\MessageBuilder($this))->to($to);
     }
 
     public function sendMessage(string $to, string $message, ?string $messageId = null): array
@@ -226,7 +233,7 @@ class WhatsAppService
         $url = "{$this->apiUrl}/{$this->apiVersion}/{$this->phoneNumberId}/{$endpoint}";
 
         $response = Http::withToken($this->accessToken)
-            ->asJson()
+                    ->asJson()
             ->{strtolower($method)}($url, $data);
 
         if (config('whatsapp.logging.enabled')) {

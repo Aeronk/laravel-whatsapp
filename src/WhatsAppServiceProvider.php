@@ -37,6 +37,10 @@ class WhatsAppServiceProvider extends ServiceProvider
         );
 
         if ($this->app->runningInConsole()) {
+            $this->commands([
+                \Katema\WhatsApp\Console\InstallCommand::class,
+            ]);
+
             $this->publishes([
                 __DIR__ . '/../config/whatsapp.php' => config_path('whatsapp.php'),
             ], 'whatsapp-config');
